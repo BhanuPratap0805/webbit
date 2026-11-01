@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -797,7 +797,20 @@
     }
 
     .hidden { display: none !important; }
-  </style>
+      /* ── Markdown rendering for agent outputs ──────────────────────────── */
+    .md-output { font-family: var(--font-body) !important; font-size: 11.5px; white-space: normal; }
+    .md-output .md-h1 { font-family: var(--font-display); color: var(--web-cyan); font-size: 13px; margin: 10px 0 4px; text-shadow: 0 0 8px rgba(0,245,255,0.4); border-bottom: 1px solid rgba(0,245,255,0.25); padding-bottom: 4px; display: block; }
+    .md-output .md-h2 { font-family: var(--font-display); color: var(--web-purple); font-size: 12px; margin: 8px 0 3px; text-shadow: 0 0 6px rgba(176,38,255,0.4); display: block; }
+    .md-output .md-h3 { color: var(--amber-gold); font-size: 11.5px; font-weight: 700; margin: 6px 0 2px; text-shadow: 0 0 5px rgba(255,190,11,0.3); display: block; }
+    .md-output strong { color: var(--web-cyan); font-weight: 700; }
+    .md-output em { color: var(--amber-gold); font-style: italic; }
+    .md-output .md-code { background: rgba(0,245,255,0.08); border: 1px solid rgba(0,245,255,0.2); border-radius: 3px; padding: 0 4px; font-family: var(--font-mono); color: var(--toxic-green); font-size: 10.5px; }
+    .md-output .md-ul { list-style: none; margin: 4px 0 6px; padding: 0; }
+    .md-output .md-ul li { padding: 2px 0 2px 16px; position: relative; }
+    .md-output .md-ul li::before { content: '⟩'; position: absolute; left: 0; color: var(--web-cyan); font-size: 9px; top: 3px; }
+    .md-output .md-p { margin: 6px 0; }
+    .md-output .md-hr { border: none; border-top: 1px solid rgba(0,245,255,0.15); margin: 8px 0; }
+</style>
 
   <!-- SVG Filters for Bioluminescent Glow -->
   <svg width="0" height="0" style="position:absolute; pointer-events:none;">
@@ -894,7 +907,7 @@
               <span>🏛️ AGENT 1 — ROLE &amp; ARCHITECTURE</span>
               <span id="cacheBadge" class="cache-tag hidden">⚡ Cached</span>
             </div>
-            <pre id="agent1Output" class="agent-output">Awaiting weave…</pre>
+            <div id="agent1Output" class="agent-output md-output">Awaiting weave…</div>
           </div>
 
           <!-- Agent 2: Function & Class Breakdown -->
@@ -902,7 +915,7 @@
             <div class="agent-pod-header">
               <span>🔬 AGENT 2 — FUNCTION &amp; CLASS BREAKDOWN</span>
             </div>
-            <pre id="agent2Output" class="agent-output">Awaiting weave…</pre>
+            <div id="agent2Output" class="agent-output md-output">Awaiting weave…</div>
           </div>
         </div>
 
@@ -984,6 +997,36 @@
       const s = document.createElement('script');
       s.src = 'https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js';
       document.head.appendChild(s);
+    }
+
+    // ── Lightweight markdown renderer ───────────────────────────────────────
+    function renderMarkdown(md) {
+      if (!md) return '';
+      // Escape HTML first to prevent XSS from raw text
+      const esc = md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return esc
+        // h3 ### before h2 ## before h1 #
+        .replace(/^### (.+)$/gm, '<h3 class="md-h3">$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2 class="md-h2">$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1 class="md-h1">$1</h1>')
+        // bold **text**
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        // italic *text*
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        // inline code `text`
+        .replace(/`([^`]+)`/g, '<code class="md-code">$1</code>')
+        // bullet list items (-, *, •)
+        .replace(/^[\-\*•] (.+)$/gm, '<li>$1</li>')
+        // wrap consecutive <li> in <ul>
+        .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul class="md-ul">$1</ul>')
+        // horizontal rule ---
+        .replace(/^---+$/gm, '<hr class="md-hr">')
+        // blank lines → paragraph break
+        .replace(/\n\n+/g, '</p><p class="md-p">')
+        // wrap in paragraph
+        .replace(/^(?!<[hul]|<li|<hr)(.+)$/gm, '<span>$1</span>')
+        // line breaks within paragraphs
+        .replace(/\n(?!<)/g, '<br>');
     }
   </script>
 
@@ -1484,8 +1527,8 @@
             $('aiErrorBox').textContent = msg.aiError;
             $('aiErrorBox').classList.remove('hidden');
           } else {
-            $('agent1Output').textContent = msg.aiFileLevel || 'Pending Agent 1 response…';
-            $('agent2Output').textContent = msg.aiFuncLevel || 'Pending Agent 2 response…';
+            $('agent1Output').innerHTML = renderMarkdown(msg.aiFileLevel || 'Pending Agent 1 response…');
+            $('agent2Output').innerHTML = renderMarkdown(msg.aiFuncLevel || 'Pending Agent 2 response…');
 
             if (msg.fromCache) {
               $('cacheBadge').classList.remove('hidden');
@@ -1500,6 +1543,36 @@
     // Auto-request initial weave on load
     if (vscode) {
       vscode.postMessage({ type: 'scan' });
+    }
+
+    // ── Lightweight markdown renderer ───────────────────────────────────────
+    function renderMarkdown(md) {
+      if (!md) return '';
+      // Escape HTML first to prevent XSS from raw text
+      const esc = md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return esc
+        // h3 ### before h2 ## before h1 #
+        .replace(/^### (.+)$/gm, '<h3 class="md-h3">$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2 class="md-h2">$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1 class="md-h1">$1</h1>')
+        // bold **text**
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        // italic *text*
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        // inline code `text`
+        .replace(/`([^`]+)`/g, '<code class="md-code">$1</code>')
+        // bullet list items (-, *, •)
+        .replace(/^[\-\*•] (.+)$/gm, '<li>$1</li>')
+        // wrap consecutive <li> in <ul>
+        .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul class="md-ul">$1</ul>')
+        // horizontal rule ---
+        .replace(/^---+$/gm, '<hr class="md-hr">')
+        // blank lines → paragraph break
+        .replace(/\n\n+/g, '</p><p class="md-p">')
+        // wrap in paragraph
+        .replace(/^(?!<[hul]|<li|<hr)(.+)$/gm, '<span>$1</span>')
+        // line breaks within paragraphs
+        .replace(/\n(?!<)/g, '<br>');
     }
   </script>
 </body>

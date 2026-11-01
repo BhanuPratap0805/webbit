@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 326a707c76c1af2d503a7ce495853fa8b83cf8cd
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
@@ -258,27 +254,6 @@ class AgentHubView implements vscode.WebviewViewProvider {
     return loadWebviewHtml(webview, this.context.extensionUri, this.context.extensionPath);
   }
 }
-<<<<<<< HEAD
-export function activate(context: vscode.ExtensionContext) {
-  const provider = new AgentHubView(context);
-  context.subscriptions.push(vscode.window.registerWebviewViewProvider("agenthub.sidebar",provider));
-  context.subscriptions.push(vscode.commands.registerCommand("agenthub.refresh",()=>vscode.commands.executeCommand("workbench.view.extension.agenthub")));
-}
-export function deactivate() {}
-=======
-/**
- * src/extension.ts
- *
- * VS Code extension entry point for Webbit.
- * Registers two commands:
- *   • webbit.explain    — analyzes the active file with the two AI agents
- *   • webbit.setApiKey  — prompts the user for their Google AI API key
- *
- * LLM provider: Google Gemini 3.5 Flash Lite (via @google/generative-ai)
- * API key storage: VS Code global settings under `webbit.aiApiKey`
- */
-=======
->>>>>>> 326a707c76c1af2d503a7ce495853fa8b83cf8cd
 
 // ─── Fullscreen Neural Graph Panel ──────────────────────────────────────────
 
@@ -478,11 +453,6 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 }
 
-<<<<<<< HEAD
 export function deactivate(): void {
   // Nothing to clean up.
 }
->>>>>>> 0a950f72bea9a343dae7d998fb296e176fa6e44f
-=======
-export function deactivate(): void {}
->>>>>>> 326a707c76c1af2d503a7ce495853fa8b83cf8cd
